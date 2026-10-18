@@ -1,0 +1,48 @@
+
+<header class="site-header">
+    <div class="container navbar">
+        <a class="brand" href="{% url 'home' %}">
+            <span class="brand-icon">B</span>
+            <span class="brand-name">Book<span class="brand-accent">Abyss</span></span>
+        </a>
+
+        <nav class="nav-links" aria-label="Головна навігація">
+            {% if user.is_authenticated %}
+                <a class="nav-link" href="{% url 'dashboard' %}">Панель</a>
+                <a class="nav-link" href="{% url 'book_list' %}">Облік книг</a>
+                <a class="nav-link" href="{% url 'sales_list' %}">Продажі</a>
+                <a class="nav-link" href="{% url 'sale_create' %}">Оформити продаж</a>
+
+                {% if user.is_staff or user.is_superuser %}
+                    <a class="nav-link" href="/admin/">Адміністрування</a>
+                {% endif %}
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Вхід</a>
+                <a class="nav-link" href="{% url 'register' %}">Реєстрація продавця</a>
+            {% endif %}
+        </nav>
+
+        <div class="nav-actions">
+            <form method="post" action="{% url 'toggle_theme' %}" class="theme-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" class="theme-toggle">
+                    {% if request.COOKIES.theme == "dark" %}
+                        ☀ Світла
+                    {% else %}
+                        ☾ Темна
+                    {% endif %}
+                </button>
+            </form>
+
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button class="button button-outline" type="submit">
+                        Вийти
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</header>

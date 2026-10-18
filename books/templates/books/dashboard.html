@@ -1,0 +1,108 @@
+
+{% extends "base.html" %}
+{% block title %}Панель керування — BookAbyss{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">РОБОЧИЙ ПРОСТІР</p>
+        <h1>Панель керування</h1>
+        <p class="subheading">
+            Користувач: {{ user.username }}.
+            Роль:
+            {% if is_administrator %}
+                Адміністратор
+            {% else %}
+                Продавець
+            {% endif %}
+        </p>
+    </div>
+</section>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span>Активних книг</span>
+        <strong>{{ book_count }}</strong>
+        <a href="{% url 'book_list' %}">Переглянути каталог</a>
+    </div>
+
+    <div class="stat-card">
+        <span>Книг із залишком до 5 шт.</span>
+        <strong>{{ low_stock_count }}</strong>
+        <a href="{% url 'book_list' %}">Перевірити залишки</a>
+    </div>
+
+    <div class="stat-card">
+        <span>Кількість продажів</span>
+        <strong>{{ sales_count }}</strong>
+        <a href="{% url 'sales_list' %}">Журнал продажів</a>
+    </div>
+
+    <div class="stat-card">
+        <span>Загальна сума</span>
+        <strong>{{ sales_total|floatformat:2 }} ₴</strong>
+    </div>
+</div>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Останні продажі</h2>
+        <a class="button" href="{% url 'sale_create' %}">
+            Оформити продаж
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Дата</th>
+                    <th>Продавець</th>
+                    <th>Покупець</th>
+                    <th>Сума</th>
+                    <th>Деталі</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in recent_sales %}
+                    <tr>
+                        <td>#{{ sale.pk }}</td>
+                        <td>{{ sale.sold_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ sale.seller.username }}</td>
+                        <td>{{ sale.customer|default:"—" }}</td>
+                        <td>{{ sale.total_amount|floatformat:2 }} ₴</td>
+                        <td>
+                            <a href="{% url 'sale_detail' sale.pk %}">
+                                Відкрити
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">Продажів поки немає.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if is_administrator %}
+    <section class="panel">
+        <h2>Адміністрування</h2>
+        <p class="muted">
+            Керування працівниками, авторами, категоріями
+            та видавництвами.
+        </p>
+        <div class="actions">
+            <a class="button button-secondary" href="/admin/">
+                Відкрити адмінпанель
+            </a>
+            <a class="button" href="{% url 'book_create' %}">
+                Додати книгу
+            </a>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,44 @@
+
+{% extends "base.html" %}
+{% block title %}Вхід — BookAbyss{% endblock %}
+
+{% block content %}
+<section class="form-wrap">
+    <div class="panel form-panel">
+        <p class="eyebrow">АВТЕНТИФІКАЦІЯ</p>
+        <h1>Вхід до системи</h1>
+        <p class="muted">Введіть логін і пароль.</p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="field">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+                <div class="field-error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <button class="button full-width" type="submit">
+                Увійти
+            </button>
+        </form>
+
+        <p class="form-bottom">
+            Немає облікового запису?
+            <a href="{% url 'register' %}">Зареєструвати продавця</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

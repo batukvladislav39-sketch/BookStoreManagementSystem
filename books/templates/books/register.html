@@ -1,0 +1,42 @@
+
+{% extends "base.html" %}
+{% block title %}Реєстрація — BookAbyss{% endblock %}
+
+{% block content %}
+<section class="form-wrap">
+    <div class="panel form-panel">
+        <p class="eyebrow">ОБЛІКОВИЙ ЗАПИС</p>
+        <h1>Реєстрація продавця</h1>
+        <p class="muted">
+            Створення облікового запису для працівника магазину.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="field">
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <div class="help-text">
+                            {{ field.help_text|safe }}
+                        </div>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <button class="button full-width" type="submit">
+                Створити обліковий запис
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+
+{% block title %}BookAbyss — система обліку{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">ІНФОРМАЦІЙНА СИСТЕМА</p>
+        <h1>Облік, організація та контроль продажів</h1>
+        <p class="subheading">
+            Система керування книжковим асортиментом,
+            складськими залишками та операціями продажу.
+        </p>
+    </div>
+</section>
+
+<section class="panel">
+    <h2>Вхід до робочої системи</h2>
+    <p class="muted">
+        Авторизуйтеся для роботи з каталогом, продажами
+        та обліковими даними відповідно до вашої ролі.
+    </p>
+    <div class="actions">
+        <a class="button" href="{% url 'login' %}">
+            Увійти
+        </a>
+        <a class="button button-secondary" href="{% url 'register' %}">
+            Реєстрація продавця
+        </a>
+    </div>
+</section>
+{% endblock %}
