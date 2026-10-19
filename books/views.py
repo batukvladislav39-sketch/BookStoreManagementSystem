@@ -1,9 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
 from .forms import SellerRegistrationForm, BookForm, SaleForm, BookSearchForm
 from .models import Book, Customer, Sale, SaleItem
 from django.views.generic import ListView, TemplateView, CreateView, UpdateView, DetailView, View
@@ -295,4 +296,20 @@ class ToggleThemeView(View):
 
         return response
 
+@require_POST
+def toggle_theme_view(request):
+    current_theme = request.COOKIES.get("theme", "light")
+    new_theme = "light" if current_theme == "dark" else "dark"
+    next_url = request.POST.get("next", "/")
+    response = redirect(next_url)
+    max_age_seconds = 60 * 60 * 24 * 365
+
+    response.set_cookie(
+        "theme",
+        new_theme,
+        max_age=max_age_seconds,
+        samesite="Lax",
+    )
+
+    return response
 
