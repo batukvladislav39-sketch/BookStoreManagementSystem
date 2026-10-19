@@ -20,19 +20,21 @@
 </section>
 
 <section class="panel">
-    <form method="get" class="search-form">
-        <label for="q">Пошук за назвою або автором</label>
-        <div class="search-row">
-            <input
-                id="q"
-                type="search"
-                name="q"
-                value="{{ query }}"
-                placeholder="Назва або автор"
-            >
-            <button class="button" type="submit">Знайти</button>
-        </div>
-    </form>
+
+<form method="get" class="book-search-form">
+    {{ search_form.q.label_tag }}
+
+    <div class="book-search-row">
+        {{ search_form.q }}
+
+        <button class="button" type="submit">
+            Знайти
+        </button>
+    </div>
+</form>
+
+
+
 
     <div class="table-wrap">
         <table>

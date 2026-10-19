@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin, UserPass
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from django.shortcuts import redirect
-from .forms import SellerRegistrationForm, BookForm, SaleForm
+from .forms import SellerRegistrationForm, BookForm, SaleForm, BookSearchForm
 from .models import Book, Customer, Sale, SaleItem
 from django.views.generic import ListView, TemplateView, CreateView, UpdateView, DetailView, View
 from django.urls import reverse_lazy
@@ -24,7 +24,7 @@ class AdminRequireMixin(LoginRequiredMixin, UserPassesTestMixin):
 
 
 class HomeView(TemplateView):
-    template_name = "books/home.html"
+    template_name = 'books/home.html'
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -35,8 +35,8 @@ class HomeView(TemplateView):
 
 class SellerRegisterView(CreateView):
     form_class = SellerRegistrationForm
-    template_name = "books/register.html"
-    success_url = "/dashboard/"
+    template_name = 'books/register.html'
+    success_url = reverse_lazy('/dashboard/')
 
     def dispatch(self, req, *args, **kwargs):
         if req.user.is_authenticated:
@@ -109,12 +109,15 @@ class DashboardTemplateView(LoginRequiredMixin, TemplateView):
 
 class BookListView(LoginRequiredMixin, ListView):
     model = Book
-    template_name = 'books/book_list.html'
-    context_object_name = 'books'
+    template_name = "books/book_list.html"
+    context_object_name = "books"
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = Book.objects.select_related(
-            'author', 'category', 'publisher'
+            "author",
+            "category",
+            "publisher",
         )
 
         user = self.request.user
@@ -122,19 +125,27 @@ class BookListView(LoginRequiredMixin, ListView):
         if not (user.is_superuser or user.is_staff):
             queryset = queryset.filter(is_active=True)
 
-        query = self.request.GET.get("q", "").strip()
+        self.search_form = BookSearchForm(self.request.GET)
 
-        if query:
-            queryset = queryset.filter(
-                Q(title__icontains=query)
-                | Q(author__full_name__icontains=query)
-            )
+        if self.search_form.is_valid():
+            query = self.search_form.cleaned_data["q"].strip()
+
+            if query:
+                queryset = queryset.filter(
+                    Q(title__icontains=query)
+                    | Q(author__full_name__icontains=query)
+                )
 
         return queryset.distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["query"] = self.request.GET.get("q", "").strip()
+
+        context["search_form"] = getattr(
+            self,
+            "search_form",
+            BookSearchForm(self.request.GET),
+        )
 
         return context
 
@@ -233,6 +244,7 @@ class SalesListView(LoginRequiredMixin, ListView):
     model = Sale
     template_name = 'books/sales_list.html'
     context_object_name = 'sales'
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = super().get_queryset().select_related(

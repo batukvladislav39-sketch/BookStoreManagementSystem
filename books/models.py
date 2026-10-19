@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.urls import reverse
 
 
 class Author(models.Model):
@@ -60,7 +61,7 @@ class Book(models.Model):
         verbose_name="Видавництво"
     )
     isbn = models.CharField(
-        "ISBN", max_length=20, unique=True, blank=True
+        "ISBN", max_length=20, unique=True
     )
     price = models.DecimalField(
         "Ціна", max_digits=10, decimal_places=2,
@@ -73,6 +74,9 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse("book_detail", kwargs={"pk": self.pk})
 
     class Meta:
         verbose_name = "Книга"
@@ -95,6 +99,10 @@ class Customer(models.Model):
 
 
 class Sale(models.Model):
+    class PaymentMethod(models.TextChoices):
+        CASH = "cash", "Готівка"
+        CARD = "card", "Картка"
+
     seller = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -112,6 +120,12 @@ class Sale(models.Model):
     total_amount = models.DecimalField(
         "Загальна сума", max_digits=12,
         decimal_places=2, default=0
+    )
+    payment_method = models.CharField(
+        "Спосіб оплати",
+        max_length=10,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
     )
 
     def __str__(self):

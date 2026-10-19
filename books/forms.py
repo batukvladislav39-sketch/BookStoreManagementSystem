@@ -107,3 +107,16 @@ class SaleForm(forms.ModelForm):
             )
 
         return phone
+
+class BookSearchForm(forms.Form):
+    q = forms.CharField(
+        label="Пошук за назвою або автором",
+        max_length=100,
+        required=False,
+        widget=forms.SearchInput(
+            attrs={
+                "placeholder": "Введіть назву книги або автора",
+                "class": "book-search-input",
+            }
+        ),
+    )
