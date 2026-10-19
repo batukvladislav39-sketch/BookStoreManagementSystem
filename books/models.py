@@ -14,6 +14,7 @@ class Author(models.Model):
     class Meta:
         verbose_name = "Автор"
         verbose_name_plural = "Автори"
+        db_table = 'authors'
 
 
 class Category(models.Model):
@@ -27,6 +28,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = "Категорія"
         verbose_name_plural = "Категорії"
+        db_table = 'categories'
 
 
 class Publisher(models.Model):
@@ -40,6 +42,7 @@ class Publisher(models.Model):
     class Meta:
         verbose_name = "Видавництво"
         verbose_name_plural = "Видавництва"
+        db_table = 'publishers'
 
 
 class Book(models.Model):
@@ -74,6 +77,7 @@ class Book(models.Model):
     class Meta:
         verbose_name = "Книга"
         verbose_name_plural = "Книги"
+        db_table = 'books'
 
 
 class Customer(models.Model):
@@ -87,6 +91,7 @@ class Customer(models.Model):
     class Meta:
         verbose_name = "Покупець"
         verbose_name_plural = "Покупці"
+        db_table = 'customers'
 
 
 class Sale(models.Model):
@@ -115,6 +120,7 @@ class Sale(models.Model):
     class Meta:
         verbose_name = "Продаж"
         verbose_name_plural = "Продажі"
+        db_table = 'sales'
 
 
 class SaleItem(models.Model):
@@ -144,4 +150,5 @@ class SaleItem(models.Model):
     class Meta:
         verbose_name = "Позиція продажу"
         verbose_name_plural = "Позиції продажу"
+        db_table = 'sale_items'
 
