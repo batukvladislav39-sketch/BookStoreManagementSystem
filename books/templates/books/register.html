@@ -1,30 +1,29 @@
-
 {% extends "base.html" %}
 {% block title %}Реєстрація — BookAbyss{% endblock %}
 
 {% block content %}
-<section class="form-wrap">
+<section class="form-wrap form-wrap-narrow">
     <div class="panel form-panel">
-        <p class="eyebrow">ОБЛІКОВИЙ ЗАПИС</p>
+        <p class="eyebrow">Обліковий запис</p>
         <h1>Реєстрація продавця</h1>
-        <p class="muted">
-            Створення облікового запису для працівника магазину.
-        </p>
+        <p class="muted">Створення облікового запису для працівника магазину.</p>
 
         <form method="post">
             {% csrf_token %}
 
+            {% if form.non_field_errors %}
+                <div class="alert alert-error" role="alert">
+                    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+
             {% for field in form %}
                 <div class="field">
-                    <label for="{{ field.id_for_label }}">
-                        {{ field.label }}
-                    </label>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
 
                     {% if field.help_text %}
-                        <div class="help-text">
-                            {{ field.help_text|safe }}
-                        </div>
+                        <div class="help-text">{{ field.help_text|safe }}</div>
                     {% endif %}
 
                     {% for error in field.errors %}
@@ -33,10 +32,13 @@
                 </div>
             {% endfor %}
 
-            <button class="button full-width" type="submit">
-                Створити обліковий запис
-            </button>
+            <button class="button full-width" type="submit">Створити обліковий запис</button>
         </form>
+
+        <p class="form-bottom">
+            Уже є обліковий запис?
+            <a href="{% url 'login' %}">Увійти</a>
+        </p>
     </div>
 </section>
 {% endblock %}

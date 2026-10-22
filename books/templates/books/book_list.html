@@ -1,96 +1,97 @@
-
 {% extends "base.html" %}
 {% block title %}Облік книг — BookAbyss{% endblock %}
 
 {% block content %}
 <section class="page-heading">
     <div>
-        <p class="eyebrow">СКЛАД ТА АСОРТИМЕНТ</p>
+        <p class="eyebrow">Склад та асортимент</p>
         <h1>Облік книг</h1>
-        <p class="subheading">
-            Каталог, ціни та актуальні залишки.
-        </p>
+        <p class="subheading">Каталог, ціни та актуальні залишки.</p>
     </div>
 
     {% if user.is_staff or user.is_superuser %}
-        <a class="button" href="{% url 'book_create' %}">
-            Додати книгу
-        </a>
+        <a class="button" href="{% url 'book_create' %}">Додати книгу</a>
     {% endif %}
 </section>
 
 <section class="panel">
-
-<form method="get" class="book-search-form">
-    {{ search_form.q.label_tag }}
-
-    <div class="book-search-row">
+    <form method="get" class="search-form" role="search">
+        <label class="visually-hidden" for="{{ search_form.q.id_for_label }}">
+            {{ search_form.q.label }}
+        </label>
         {{ search_form.q }}
-
-        <button class="button" type="submit">
-            Знайти
-        </button>
-    </div>
-</form>
-
-
-
+        <button class="button" type="submit">Знайти</button>
+        {% if search_form.q.value %}
+            <a class="button button-outline" href="{% url 'book_list' %}">Скинути</a>
+        {% endif %}
+    </form>
 
     <div class="table-wrap">
-        <table>
+        <table class="responsive-table">
             <thead>
                 <tr>
                     <th>Назва</th>
                     <th>Автор</th>
                     <th>Категорія</th>
                     <th>Видавництво</th>
-                    <th>Ціна</th>
+                    <th class="num">Ціна</th>
                     <th>Залишок</th>
                     <th>Статус</th>
                     {% if user.is_staff or user.is_superuser %}
-                        <th>Дії</th>
+                        <th></th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for book in books %}
                     <tr>
-                        <td>
-                            {{ book.title }}
+                        <td class="cell-primary">
+                            <div class="cell-title">{{ book.title }}</div>
                             {% if book.isbn %}
-                                <div class="muted small">
-                                    ISBN: {{ book.isbn }}
-                                </div>
+                                <div class="muted small">ISBN: {{ book.isbn }}</div>
                             {% endif %}
                         </td>
-                        <td>{{ book.author }}</td>
-                        <td>{{ book.category }}</td>
-                        <td>{{ book.publisher }}</td>
-                        <td>{{ book.price|floatformat:2 }} ₴</td>
-                        <td>{{ book.stock_quantity }} шт.</td>
-                        <td>
-                            {% if book.is_active %}
-                                Активна
+                        <td data-label="Автор">{{ book.author }}</td>
+                        <td data-label="Категорія">{{ book.category }}</td>
+                        <td data-label="Видавництво">{{ book.publisher }}</td>
+                        <td class="num" data-label="Ціна">{{ book.price|floatformat:2 }} ₴</td>
+                        <td data-label="Залишок">
+                            {% if book.stock_quantity == 0 %}
+                                <span class="badge badge-danger">Немає</span>
+                            {% elif book.stock_quantity <= 5 %}
+                                <span class="badge badge-warning">{{ book.stock_quantity }} шт.</span>
                             {% else %}
-                                Неактивна
+                                {{ book.stock_quantity }} шт.
                             {% endif %}
                         </td>
-
+                        <td data-label="Статус">
+                            {% if book.is_active %}
+                                <span class="badge badge-success">Активна</span>
+                            {% else %}
+                                <span class="badge badge-muted">Неактивна</span>
+                            {% endif %}
+                        </td>
                         {% if user.is_staff or user.is_superuser %}
-                            <td>
-                                <a href="{% url 'book_edit' book.pk %}">
-                                    Редагувати
-                                </a>
+                            <td class="num">
+                                <a href="{% url 'book_edit' book.pk %}">Редагувати</a>
                             </td>
                         {% endif %}
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="8">Книг не знайдено.</td>
+                        <td colspan="8" class="empty-state">
+                            {% if search_form.q.value %}
+                                За запитом «{{ search_form.q.value }}» нічого не знайдено.
+                            {% else %}
+                                У каталозі ще немає книг.
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% include "books/_pagination.html" with query=search_form.q.value %}
 </section>
 {% endblock %}

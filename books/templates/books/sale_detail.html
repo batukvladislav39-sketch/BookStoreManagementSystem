@@ -1,53 +1,81 @@
-
 {% extends "base.html" %}
 {% block title %}Продаж №{{ sale.pk }} — BookAbyss{% endblock %}
 
 {% block content %}
 <section class="page-heading">
     <div>
-        <p class="eyebrow">ДЕТАЛІ ОПЕРАЦІЇ</p>
+        <p class="eyebrow">Деталі операції</p>
         <h1>Продаж №{{ sale.pk }}</h1>
-        <p class="subheading">
-            {{ sale.sold_at|date:"d.m.Y H:i" }}
-        </p>
+        <p class="subheading">{{ sale.sold_at|date:"d.m.Y H:i" }}</p>
     </div>
-    <a class="button button-secondary"
-       href="{% url 'sales_list' %}">
-        До журналу продажів
-    </a>
+    <div class="actions no-print">
+        <button class="button button-outline" type="button" onclick="window.print()">Друкувати</button>
+        <a class="button button-secondary" href="{% url 'sales_list' %}">До журналу продажів</a>
+    </div>
 </section>
 
-<section class="panel">
-    <p><strong>Продавець:</strong> {{ sale.seller.username }}</p>
-    <p><strong>Покупець:</strong> {{ sale.customer|default:"Не вказано" }}</p>
-
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Книга</th>
-                    <th>Кількість</th>
-                    <th>Ціна</th>
-                    <th>Сума</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in sale.items.all %}
+<div class="detail-grid">
+    <section class="panel">
+        <h2>Позиції</h2>
+        <div class="table-wrap">
+            <table class="responsive-table">
+                <thead>
                     <tr>
-                        <td>{{ item.book.title }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.unit_price|floatformat:2 }} ₴</td>
-                        <td>{{ item.line_total|floatformat:2 }} ₴</td>
+                        <th>Книга</th>
+                        <th class="num">Кількість</th>
+                        <th class="num">Ціна</th>
+                        <th class="num">Сума</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="3">Загальна сума</th>
-                    <th>{{ sale.total_amount|floatformat:2 }} ₴</th>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-</section>
+                </thead>
+                <tbody>
+                    {% for item in sale.items.all %}
+                        <tr>
+                            <td class="cell-primary">{{ item.book.title }}</td>
+                            <td class="num" data-label="Кількість">{{ item.quantity }}</td>
+                            <td class="num" data-label="Ціна">{{ item.unit_price|floatformat:2 }} ₴</td>
+                            <td class="num" data-label="Сума">{{ item.line_total|floatformat:2 }} ₴</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3">Загальна сума</th>
+                        <th class="num total-cell">{{ sale.total_amount|floatformat:2 }} ₴</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </section>
+
+    <aside class="panel">
+        <h2>Про продаж</h2>
+        <dl class="detail-list">
+            <div>
+                <dt>Продавець</dt>
+                <dd>{{ sale.seller.username }}</dd>
+            </div>
+            <div>
+                <dt>Покупець</dt>
+                <dd>
+                    {{ sale.customer|default:"Не вказано" }}
+                    {% if sale.customer.phone %}
+                        <div class="muted small">{{ sale.customer.phone }}</div>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt>Оплата</dt>
+                <dd>
+                    <span class="badge {% if sale.payment_method == 'card' %}badge-info{% else %}badge-muted{% endif %}">
+                        {{ sale.get_payment_method_display }}
+                    </span>
+                </dd>
+            </div>
+            <div>
+                <dt>Позицій</dt>
+                <dd>{{ sale.items.all|length }}</dd>
+            </div>
+        </dl>
+    </aside>
+</div>
 {% endblock %}

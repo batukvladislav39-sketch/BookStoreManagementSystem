@@ -64,7 +64,11 @@ class SaleForm(forms.ModelForm):
 
     class Meta:
         model = Sale
-        fields = []
+        fields = ["payment_method"]
+        widgets = {
+            "payment_method": forms.RadioSelect(attrs={"class": "choice-group"}),
+        }
+        labels = {"payment_method": "Спосіб оплати"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,11 +1,10 @@
-
 {% extends "base.html" %}
 {% block title %}Облік продажів — BookAbyss{% endblock %}
 
 {% block content %}
 <section class="page-heading">
     <div>
-        <p class="eyebrow">ЖУРНАЛ ОПЕРАЦІЙ</p>
+        <p class="eyebrow">Журнал операцій</p>
         <h1>Облік продажів</h1>
         <p class="subheading">
             {% if user.is_staff or user.is_superuser %}
@@ -15,52 +14,62 @@
             {% endif %}
         </p>
     </div>
-    <a class="button" href="{% url 'sale_create' %}">
-        Оформити продаж
-    </a>
+    <a class="button" href="{% url 'sale_create' %}">Оформити продаж</a>
 </section>
 
 <section class="panel">
     <div class="table-wrap">
-        <table>
+        <table class="responsive-table">
             <thead>
                 <tr>
-                    <th>Номер</th>
+                    <th>№</th>
                     <th>Дата</th>
                     <th>Продавець</th>
                     <th>Покупець</th>
                     <th>Позиції</th>
-                    <th>Сума</th>
+                    <th>Оплата</th>
+                    <th class="num">Сума</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for sale in sales %}
                     <tr>
-                        <td>#{{ sale.pk }}</td>
-                        <td>{{ sale.sold_at|date:"d.m.Y H:i" }}</td>
-                        <td>{{ sale.seller.username }}</td>
-                        <td>{{ sale.customer|default:"—" }}</td>
-                        <td>
-                            {% for item in sale.items.all %}
-                                {{ item.book.title }} × {{ item.quantity }}
-                                {% if not forloop.last %}, {% endif %}
-                            {% endfor %}
+                        <td data-label="№"><a href="{% url 'sale_detail' sale.pk %}">#{{ sale.pk }}</a></td>
+                        <td data-label="Дата">{{ sale.sold_at|date:"d.m.Y H:i" }}</td>
+                        <td data-label="Продавець">{{ sale.seller.username }}</td>
+                        <td data-label="Покупець">{{ sale.customer|default:"—" }}</td>
+                        <td data-label="Позиції">
+                            <div class="cell-stack">
+                                {% for item in sale.items.all %}
+                                    <div>
+                                        {{ item.book.title }}
+                                        <span class="muted">× {{ item.quantity }}</span>
+                                    </div>
+                                {% endfor %}
+                            </div>
                         </td>
-                        <td>{{ sale.total_amount|floatformat:2 }} ₴</td>
-                        <td>
-                            <a href="{% url 'sale_detail' sale.pk %}">
-                                Деталі
-                            </a>
+                        <td data-label="Оплата">
+                            <span class="badge {% if sale.payment_method == 'card' %}badge-info{% else %}badge-muted{% endif %}">
+                                {{ sale.get_payment_method_display }}
+                            </span>
+                        </td>
+                        <td class="num" data-label="Сума">{{ sale.total_amount|floatformat:2 }} ₴</td>
+                        <td class="num">
+                            <a href="{% url 'sale_detail' sale.pk %}">Деталі</a>
                         </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="7">Продажів поки немає.</td>
+                        <td colspan="8" class="empty-state">
+                            Продажів поки немає. Оформіть перший продаж, і він з'явиться тут.
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    {% include "books/_pagination.html" %}
 </section>
 {% endblock %}

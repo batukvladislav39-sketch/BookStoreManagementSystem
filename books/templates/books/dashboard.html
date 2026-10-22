@@ -1,86 +1,128 @@
-
 {% extends "base.html" %}
 {% block title %}Панель керування — BookAbyss{% endblock %}
 
 {% block content %}
 <section class="page-heading">
     <div>
-        <p class="eyebrow">РОБОЧИЙ ПРОСТІР</p>
+        <p class="eyebrow">Робочий простір</p>
         <h1>Панель керування</h1>
         <p class="subheading">
-            Користувач: {{ user.username }}.
-            Роль:
-            {% if is_administrator %}
-                Адміністратор
-            {% else %}
-                Продавець
-            {% endif %}
+            {{ user.username }}
+            <span class="badge">
+                {% if is_administrator %}Адміністратор{% else %}Продавець{% endif %}
+            </span>
         </p>
     </div>
+    <a class="button" href="{% url 'sale_create' %}">Оформити продаж</a>
 </section>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <span>Активних книг</span>
-        <strong>{{ book_count }}</strong>
-        <a href="{% url 'book_list' %}">Переглянути каталог</a>
+<div class="stats-grid stats-grid-2">
+
+    <div class="stat-card stat-card-ring">
+        <div class="ring" style="--value: {{ active_percent }};"
+             role="img" aria-label="Активні книги: {{ active_percent }}%">
+            <span class="ring-value">{{ active_percent }}<small>%</small></span>
+        </div>
+        <div class="stat-body">
+            <span class="stat-label">Активних книг</span>
+            <strong class="stat-value">{{ book_count }}</strong>
+            <span class="stat-description">із {{ total_book_count }} у каталозі</span>
+            <a class="stat-link" href="{% url 'book_list' %}">Переглянути каталог</a>
+        </div>
     </div>
 
-    <div class="stat-card">
-        <span>Книг із залишком до 5 шт.</span>
-        <strong>{{ low_stock_count }}</strong>
-        <a href="{% url 'book_list' %}">Перевірити залишки</a>
+    <div class="stat-card stat-card-ring">
+        <div class="ring ring-warning" style="--value: {{ low_stock_percent }};"
+             role="img" aria-label="Малий залишок: {{ low_stock_percent }}%">
+            <span class="ring-value">{{ low_stock_percent }}<small>%</small></span>
+        </div>
+        <div class="stat-body">
+            <span class="stat-label">Залишок до 5 шт.</span>
+            <strong class="stat-value">{{ low_stock_count }}</strong>
+            <span class="stat-description">від усіх активних книг</span>
+            <a class="stat-link" href="{% url 'book_list' %}">Перевірити залишки</a>
+        </div>
     </div>
 
-    <div class="stat-card">
-        <span>Кількість продажів</span>
-        <strong>{{ sales_count }}</strong>
-        <a href="{% url 'sales_list' %}">Журнал продажів</a>
+    <div class="stat-card stat-card-ring">
+        <div class="ring ring-info" style="--value: {{ card_percent }};"
+             role="img" aria-label="Оплата карткою: {{ card_percent }}%">
+            <span class="ring-value">{{ card_percent }}<small>%</small></span>
+        </div>
+        <div class="stat-body">
+            <span class="stat-label">Кількість продажів</span>
+            <strong class="stat-value">{{ sales_count }}</strong>
+            <span class="stat-description">карткою: {{ card_sales_count }} із {{ sales_count }}</span>
+            <a class="stat-link" href="{% url 'sales_list' %}">Журнал продажів</a>
+        </div>
     </div>
 
-    <div class="stat-card">
-        <span>Загальна сума</span>
-        <strong>{{ sales_total|floatformat:2 }} ₴</strong>
+    <div class="stat-card stat-card-ring">
+        <div class="ring ring-success" style="--value: {{ month_percent }};"
+             role="img" aria-label="Частка за поточний місяць: {{ month_percent }}%">
+            <span class="ring-value">{{ month_percent }}<small>%</small></span>
+        </div>
+        <div class="stat-body">
+            <span class="stat-label">Загальна сума</span>
+            <strong class="stat-value">{{ sales_total|floatformat:2 }} ₴</strong>
+            <span class="stat-description">цього місяця: {{ month_total|floatformat:2 }} ₴</span>
+        </div>
     </div>
+
 </div>
+
+<section class="panel top-books">
+    <div class="panel-heading">
+        <h2>Найпопулярніші книги</h2>
+        <div class="segmented" role="group" aria-label="Період">
+            <input class="visually-hidden" type="radio" name="top-period" id="top-month" checked>
+            <label for="top-month">Цей місяць</label>
+            <input class="visually-hidden" type="radio" name="top-period" id="top-all">
+            <label for="top-all">Увесь час</label>
+        </div>
+    </div>
+
+    <div class="top-list top-list-month">
+        {% include "books/_top_books.html" with rows=top_books_month empty_text="У цьому місяці ще не було продажів." %}
+    </div>
+    <div class="top-list top-list-all">
+        {% include "books/_top_books.html" with rows=top_books_all empty_text="Продажів поки немає." %}
+    </div>
+</section>
 
 <section class="panel">
     <div class="panel-heading">
         <h2>Останні продажі</h2>
-        <a class="button" href="{% url 'sale_create' %}">
-            Оформити продаж
-        </a>
+        <a class="button button-outline" href="{% url 'sales_list' %}">Усі продажі</a>
     </div>
 
     <div class="table-wrap">
-        <table>
+        <table class="responsive-table">
             <thead>
                 <tr>
                     <th>№</th>
                     <th>Дата</th>
                     <th>Продавець</th>
                     <th>Покупець</th>
-                    <th>Сума</th>
+                    <th class="num">Сума</th>
                     <th>Деталі</th>
                 </tr>
             </thead>
             <tbody>
                 {% for sale in recent_sales %}
                     <tr>
-                        <td>#{{ sale.pk }}</td>
-                        <td>{{ sale.sold_at|date:"d.m.Y H:i" }}</td>
-                        <td>{{ sale.seller.username }}</td>
-                        <td>{{ sale.customer|default:"—" }}</td>
-                        <td>{{ sale.total_amount|floatformat:2 }} ₴</td>
-                        <td>
-                            <a href="{% url 'sale_detail' sale.pk %}">
-                                Відкрити
-                            </a>
-                        </td>
+                        <td data-label="№">#{{ sale.pk }}</td>
+                        <td data-label="Дата">{{ sale.sold_at|date:"d.m.Y H:i" }}</td>
+                        <td data-label="Продавець">{{ sale.seller.username }}</td>
+                        <td data-label="Покупець">{{ sale.customer|default:"—" }}</td>
+                        <td class="num" data-label="Сума">{{ sale.total_amount|floatformat:2 }} ₴</td>
+                        <td><a href="{% url 'sale_detail' sale.pk %}">Відкрити</a></td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6">Продажів поки немає.</td>
+                        <td colspan="6" class="empty-state">
+                            Продажів поки немає. Оформіть перший продаж, і він з'явиться тут.
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -92,16 +134,11 @@
     <section class="panel">
         <h2>Адміністрування</h2>
         <p class="muted">
-            Керування працівниками, авторами, категоріями
-            та видавництвами.
+            Керування працівниками, авторами, категоріями та видавництвами.
         </p>
         <div class="actions">
-            <a class="button button-secondary" href="/admin/">
-                Відкрити адмінпанель
-            </a>
-            <a class="button" href="{% url 'book_create' %}">
-                Додати книгу
-            </a>
+            <a class="button button-secondary" href="/admin/">Відкрити адмінпанель</a>
+            <a class="button" href="{% url 'book_create' %}">Додати книгу</a>
         </div>
     </section>
 {% endif %}

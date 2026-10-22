@@ -1,0 +1,24 @@
+{# Підключення: {% include "books/_top_books.html" with rows=top_books_month empty_text="..." %} #}
+{% if rows %}
+    <ol class="rank-list">
+        {% for row in rows %}
+            <li class="rank-item">
+                <span class="rank-pos">{{ forloop.counter }}</span>
+                <div class="rank-body">
+                    <div class="rank-head">
+                        <span class="rank-title">{{ row.title }}</span>
+                        <span class="rank-qty">{{ row.total_qty }} шт.</span>
+                    </div>
+                    <div class="rank-bar" aria-hidden="true">
+                        <span style="--value: {{ row.percent }};"></span>
+                    </div>
+                    <div class="rank-meta muted small">
+                        {{ row.author }} · виручка {{ row.revenue|floatformat:2 }} ₴
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+{% else %}
+    <p class="empty-state">{{ empty_text }}</p>
+{% endif %}

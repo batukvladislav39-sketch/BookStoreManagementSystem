@@ -1,0 +1,27 @@
+{# Підключення: {% include "books/_pagination.html" with query=search_form.q.value %} #}
+{% if is_paginated %}
+<div class="pagination-bar">
+    <p class="pagination-info">
+        Показано {{ page_obj.start_index }}–{{ page_obj.end_index }}
+        із {{ page_obj.paginator.count }}
+    </p>
+
+    <nav class="pagination" aria-label="Сторінки">
+        {% if page_obj.has_previous %}
+            <a class="page-link" href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Назад</a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <span class="page-link is-current" aria-current="page">{{ num }}</span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a class="page-link" href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <a class="page-link" href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Далі</a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}

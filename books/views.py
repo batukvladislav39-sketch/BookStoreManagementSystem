@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.db.models import Sum
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
 from .forms import SellerRegistrationForm, BookForm, SaleForm, BookSearchForm
@@ -13,6 +12,10 @@ from django.db.models import Q
 from decimal import Decimal
 from django.contrib.auth.views import LoginView
 from django.db import transaction
+from django.utils import timezone
+from django.db.models import Sum, F, DecimalField
+
+
 
 def is_admin(user):
     return user.is_authenticated and (
@@ -37,7 +40,7 @@ class HomeView(TemplateView):
 class SellerRegisterView(CreateView):
     form_class = SellerRegistrationForm
     template_name = 'books/register.html'
-    success_url = reverse_lazy('/dashboard/')
+    success_url = reverse_lazy('dashboard')
 
     def dispatch(self, req, *args, **kwargs):
         if req.user.is_authenticated:
@@ -72,39 +75,64 @@ class DashboardTemplateView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         is_administrator = is_admin(user)
 
-        active_books = Book.objects.filter(is_active= True)
+        active_books = Book.objects.filter(is_active=True)
+        book_count = active_books.count()
+        total_book_count = Book.objects.count()
+        low_stock_count = active_books.filter(stock_quantity__lte=5).count()
 
         sales = (
             Sale.objects
                 .select_related('seller', 'customer')
                 .prefetch_related('items__book')
         )
-
         if not is_administrator:
-            sales = sales.filter(seller= user)
+            sales = sales.filter(seller=user)
 
-        sales_stats = sales.aggregate(
-            total = Sum('total_amount')
+        sales_count = sales.count()
+        sales_total = sales.aggregate(t=Sum('total_amount'))['t'] or Decimal('0.00')
+        card_sales_count = sales.filter(
+            payment_method=Sale.PaymentMethod.CARD
+        ).count()
+
+        now = timezone.now()
+        if timezone.is_aware(now):
+            now = timezone.localtime(now)
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        month_total = (
+            sales.filter(sold_at__gte=month_start)
+                 .aggregate(t=Sum('total_amount'))['t'] or Decimal('0.00')
         )
+
+        items = SaleItem.objects.all()
+        if not is_administrator:
+            items = items.filter(sale__seller=user)
+
+        top_books_all = top_books(items)
+        top_books_month = top_books(items.filter(sale__sold_at__gte=month_start))
 
         context.update({
             "is_administrator": is_administrator,
 
-            "book_count": active_books.count(),
+            "book_count": book_count,
+            "total_book_count": total_book_count,
+            "active_percent": calc_percents(book_count, total_book_count),
 
-            "low_stock_count": active_books.filter(
-                stock_quantity__lte=5
-            ).count(),
+            "low_stock_count": low_stock_count,
+            "low_stock_percent": calc_percents(low_stock_count, book_count),
 
-            "sales_count": sales.count(),
+            "sales_count": sales_count,
+            "card_sales_count": card_sales_count,
+            "card_percent": calc_percents(card_sales_count, sales_count),
 
-            "sales_total": (
-                    sales_stats["total"] or Decimal("0.00")
-            ),
+            "sales_total": sales_total,
+            "month_total": month_total,
+            "month_percent": calc_percents(month_total, sales_total),
 
             "recent_sales": sales.order_by("-pk")[:8],
-        })
 
+            "top_books_month": top_books_month,
+            "top_books_all": top_books_all,
+        })
         return context
 
 
