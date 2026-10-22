@@ -15,7 +15,25 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models import Sum, F, DecimalField
 
+def calc_percents(part, whole):
+    return min(100, round(float(part) / float(whole) * 100)) if whole else 0
 
+def top_books(items, limit=5):
+    rows = list(
+        items.values("book_id", title=F("book__title"), author=F("book__author__full_name"))
+             .annotate(
+                 total_qty=Sum("quantity"),
+                 revenue=Sum(
+                     F("quantity") * F("unit_price"),
+                     output_field=DecimalField(max_digits=12, decimal_places=2),
+                 ),
+             )
+             .order_by("-total_qty", "-revenue", "title")[:limit]
+    )
+    top_qty = rows[0]["total_qty"] if rows else 0
+    for row in rows:
+        row["percent"] = calc_percents(row["total_qty"], top_qty)
+    return rows
 
 def is_admin(user):
     return user.is_authenticated and (
