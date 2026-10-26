@@ -46,19 +46,28 @@ class BookForm(forms.ModelForm):
 class SaleForm(forms.ModelForm):
     book = forms.ModelChoiceField(
         queryset=Book.objects.none(),
-        label="Книга"
+        label="Книга",
+        required=True
     )
     quantity = forms.IntegerField(
-        label="Кількість", min_value=1, initial=1
+        label="Кількість",
+        min_value=1,
+        initial=1,
+        required=True
     )
     customer_name = forms.CharField(
         label="ПІБ покупця",
         max_length=180,
-        required=False
+        required=True
     )
     customer_phone = forms.CharField(
         label="Телефон покупця",
         max_length=30,
+        required=True
+    )
+    customer_email =  forms.CharField(
+        label="Email покупця",
+        max_length=55,
         required=False
     )
 

@@ -30,6 +30,19 @@
             <button class="button full-width" type="submit">Увійти</button>
         </form>
 
+        <div class="social">
+     <ul>
+         <li class="google">
+             <form action="{% url 'social:begin' 'google-oauth2' %}" method="post">
+                 {% csrf_token %}
+                 <button type="submit" class="btn-google" style="background:none; border:none; color:inherit; font:inherit; cursor:pointer; padding:0;">
+                     Sign in with Google
+                 </button>
+             </form>
+         </li>
+     </ul>
+</div>
+
         <p class="form-bottom">
             Немає облікового запису?
             <a href="{% url 'register' %}">Зареєструвати продавця</a>

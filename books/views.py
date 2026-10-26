@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 from .forms import SellerRegistrationForm, BookForm, SaleForm, BookSearchForm
 from .models import Book, Customer, Sale, SaleItem
@@ -14,6 +14,20 @@ from django.contrib.auth.views import LoginView
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Sum, F, DecimalField
+from django.core.mail import send_mail
+
+def sale_complete_message(mail, full_name, book_name, unit_price, quantity, total_amount):
+    send_mail(
+        subject=f'Вітаємо {full_name}! 🎉 (BookAbyss)',
+        message=f'''
+Ви придбали книгу {book_name}.
+Кількість книг: {quantity}.
+Ціна за шт. {unit_price}, загальна вартість: {total_amount}.
+''',
+        from_email=None,
+        recipient_list=[ mail ],
+        fail_silently=False,
+    )
 
 def calc_percents(part, whole):
     return min(100, round(float(part) / float(whole) * 100)) if whole else 0
@@ -252,13 +266,15 @@ class SaleCreateView(LoginRequiredMixin, CreateView):
                 return self.form_invalid(form)
 
             customer = None
-            customer_name = form.cleaned_data.get('customer_name', '').strip()
-            customer_phone = form.cleaned_data.get('customer_phone', '').strip()
+            customer_name = form.cleaned_data.get('customer_name').strip()
+            customer_phone = form.cleaned_data.get('customer_phone').strip()
+            customer_email = form.cleaned_data.get('customer_email', '').strip()
 
             if customer_name:
                 customer = Customer.objects.create(
                     full_name = customer_name,
-                    phone = customer_phone
+                    phone = customer_phone,
+                    email = customer_email
                 )
 
             total = book.price * quantity
@@ -283,6 +299,8 @@ class SaleCreateView(LoginRequiredMixin, CreateView):
                 self.request,
                 f'Продаж №{self.object.pk} успішно оформлено.'
             )
+
+            sale_complete_message(customer_email, customer.full_name, book.title, book.price, quantity, total)
 
         return super().form_valid(form)
 
